@@ -1,0 +1,27 @@
+@import url(https://fonts.googleapis.com/css?family=Lato);
+ 
+body {
+		
+		margin: 0px;
+		overflow: hidden;
+	}
+
+			
+td {
+	font-size: 15px;
+	padding: 7px 7px 7px 7px;
+	  font-family: 'Lato', sans-serif;
+	text-align: left;
+	color: black;
+	border-bottom: 1px solid #ddd;
+	 
+}
+table{
+		position:fixed;
+		padding: 12px 15px 12px 15px;
+		bottom:2px;
+		right:2px;
+		border-radius: 20px 50px;
+		background-color: rgba(0,0,0,.15); 
+		opacity: 0.8
+	}

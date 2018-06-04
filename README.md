@@ -1,3 +1,35 @@
+#AUTORI
+
+Buonsanto Vito, Pepe Grazia
+
+#Screenshots
+ 
+![Main view thumbnail](screenshot/screen_01.png)
+
+
+## Descrizione generale
+
+Il nostro scopo era quello di creare un configuratore di prodotto  molto semplice, intuitivo, con le informazioni essenziali riguardanti il prodotto e che fosse interattivo, quindi l'utente è in grado di selezionare i materiali messi a disposizione.
+
+
+Gli oggetti principali della scena sono:
+- La **sedia** è l'oggetto centrale ed è composta da 3 materiali per la base e 3 per i cuscini che possono essere modificati dal cliente mediante i menu a comparsa sulla sinistra.
+
+
+## Risultati
+
+![Main view](screenshots/screen_01.png)
+
+La pagina creata è formata da tre sezioni principali:
+- La barra di navigazione
+- Un area informativa
+- L'area di visualizzazione dell'oggetto
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------
 # ProductVisualization
 
 ![Image from Ford Configurator, developed in three.js](images/ford-configurator.jpg)

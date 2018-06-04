@@ -1,0 +1,65 @@
+@import url(https://fonts.googleapis.com/css?family=Lato);
+ 
+
+#flyout_menu {
+
+
+	position:absolute;
+	left:0.5%;
+	top:50%;
+	
+	
+	background: #fff;
+  
+	border: 1px solid rgba(0,0,0,.1);
+	width: 130px; 
+	height:100px}
+
+#flyout_menu ul, li {
+
+  list-style: none;
+  margin: 0;
+  padding: 0; 
+}
+
+#flyout_menu ul li.hover,
+#flyout_menu ul li:hover { }
+
+#flyout_menu ul ul{
+	visibility: hidden;
+	position: absolute;
+	top: 100%;
+	
+	
+}
+
+#flyout_menu ul li:hover > ul { visibility: visible; }
+
+#flyout_menu ul ul { top: 0; left: 100%; display:block;}
+
+#flyout_menu span, #flyout_menu a {
+	display:block;
+	font-family: 'Lato', sans-serif;
+	    color: #222; 
+        font-size: .9em;
+        letter-spacing: 1px;
+        text-decoration: none;
+        text-transform: uppercase;
+		}
+
+#flyout_menu li { background: #fff; }
+#flyout_menu li:hover, #flyout_menu li.active { background: rgba(0,0,0,.15); }
+
+#flyout_menu a {
+	
+    padding: 16px 18px 16px 18px;
+    width: 150px; }
+
+#flyout_menu ul ul li {
+	background: #fff;
+	
+        border: 1px solid rgba(0,0,0,.1); }
+
+#flyout_menu ul ul li:hover { background:  rgba(0,0,0,.15); }
+
+

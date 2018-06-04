@@ -1,0 +1,607 @@
+
+<html lang="en">
+
+ 
+
+
+	<head>
+	
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+<meta name="HandheldFriendly" content="True" />
+	
+   <link rel="stylesheet" href="css/index.css">
+   <link rel="stylesheet" href="css/style.css">
+   <link rel="stylesheet" href="css/menu.css">
+   <script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+	 <meta charset='utf-8'>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>Buonsanto Pepe</title>
+
+
+	</head>
+	
+	<body>
+	
+
+
+<div id='flyout_menu'>
+<ul>
+
+   <li><a href='#'><span>Materiali</span></a>
+      <ul>
+         <li><a href='#'><span>Base</span></a>
+            <ul>
+              <li onclick="EventChangeMaterial(1)"><a>Platinum</a></li>
+			   <li onclick="EventChangeMaterial(2)"><a>Aluminium</a></li>
+			   <li onclick="EventChangeMaterial(3)"><a><span>Plastica Lucida</span></a></li>
+            </ul>
+         </li>
+         <li><a href='#'><span>Cuscino</span></a>
+            <ul>
+              <li onclick="EventChangeMaterial(4)"><a>Jeans</a></li>
+               <li onclick="EventChangeMaterial(5)"><a>Pelle</a></li>
+			   <li onclick="EventChangeMaterial(6)"><a>Mimetico</a></li>
+            </ul>
+         </li>
+      </ul>
+   </li>
+   </ul>
+   <ul>
+     <li><a href='#'><span>BUY</span></a>
+   </ul>
+
+</div>
+
+   
+   
+  </ul>
+</nav>
+
+<nav role='navigation'>
+<ul>
+   <li><a href=''>Home</a></li>
+   <li class='active'><a href='#'>Prodotti</a>
+      <ul>
+         <li><a href=''>Sedie</a>
+            <ul>
+               <li ><a>moderne</a></li>
+			   <li ><a>classiche</a></li>
+		
+           
+            </ul>
+         </li>
+         <li><a href=''>Divani</a>
+            <ul>
+               <li ><a>2 Posti</a></li>
+               <li ><a>3 Posti</a></li>
+			   <li ><a>Penisola</a></li>
+            </ul>
+         </li>
+      </ul>
+   </li>
+    <li><a href=''>FAQ</a></li>
+   <li><a href=''>Contatti</a></li>
+ 
+   <li><a href='' ><img src="textures/menu/buy.png" height=15 width=15 align="center"/> Carrello</a></li>
+</ul>
+</nav>  
+
+
+		
+		<table>
+			 <tr>
+				<td>Codice Prodotto: </td>
+				<td>RoundChair#125Cs</td>
+			  </tr>
+			  	 <tr>
+				<td>  </td>
+				<td> </td>
+			  </tr>
+			  <tr>
+				<td>Dimensioni base: </td>
+				<td>60*60*60 cm</td>
+			  </tr>
+			  <tr>
+				<td>Dimensioni cuscino: </td>
+				<td>40*40*10 cm</td>
+			  </tr>
+			   <tr>
+				<td>Prezzo: </td>
+				<td ><p id="PrezzoToT"></p></td>
+			  </tr>
+			</table>
+		
+
+		
+		
+
+		<!-- shaders -->
+
+
+		<script src="lib/three.min.js"></script>
+		<script src="lib/stats.min.js"></script>
+		<script src="lib/OrbitControls.js"></script>
+		<script src='lib/dat.gui.min.js'></script>
+		<script src='lib/OBJLoader.js'></script>
+		<!-- shaders -->
+
+		<script type="text/x-glsl" id="vertex">
+		varying vec3 vNormal;
+		varying vec3 vPosition;
+		varying vec2 uVv;
+		varying vec3 wPosition;
+
+		void main() {
+		
+			vec4 vPos = vec4(normalize(position) , 1.0) + vec4(position, 1.0);
+			vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+			vNormal = normalMatrix * normal;
+			uVv = uv;
+			wPosition = (modelMatrix * vec4( position, 1.0 )).xyz;
+			gl_Position = projectionMatrix * modelViewMatrix * vPos;
+		}
+		</script>
+
+		<script type="text/x-glsl" id="fragment">
+			varying vec3 vNormal;
+			varying vec3 vPosition;
+			varying vec2 uVv;
+			varying vec3 wPosition;
+			uniform vec3 pointLightPosition1; // in world space
+			uniform vec3 pointLightPosition2; // in world space
+			uniform vec3 pointLightPosition3; // in world space
+			uniform vec3 clight;
+			uniform vec3 ambientLight;
+			uniform sampler2D specularMap;
+			uniform sampler2D diffuseMap;
+			uniform sampler2D roughnessMap;
+			uniform sampler2D aoMap;
+			uniform sampler2D normalMap;
+			uniform samplerCube envMap;
+			
+			uniform vec2 textureRepeat;
+			
+			const float PI = 3.14159;
+
+			vec3 cdiff;
+			vec3 cspec;
+			float roughness;
+
+			vec3 FSchlick(float lDoth) {
+				return (cspec + (vec3(1.0)-cspec)*pow(1.0 - lDoth,5.0));
+			}
+
+			float DGGX(float nDoth, float alpha) {
+				float alpha2 = max(alpha*alpha, 0.01);
+				float d = nDoth*nDoth*(alpha2-1.0)+1.0;
+				return (  alpha2 / (PI*d*d));
+			}
+
+			float G1(float dotProduct, float k) {
+				return (dotProduct / (dotProduct*(1.0-k) + k) );
+			}
+
+			float GSmith(float nDotv, float nDotl) {
+					float k = roughness*roughness;
+					return G1(nDotl,k)*G1(nDotv,k);
+			}
+			
+			#extension GL_OES_standard_derivatives : enable
+
+			vec3 perturbNormal2Arb( vec3 eye_pos, vec3 surf_norm ) {
+
+				vec3 q0 = dFdx( eye_pos.xyz );
+				vec3 q1 = dFdy( eye_pos.xyz );
+				vec2 st0 = dFdx( uVv.st );
+				vec2 st1 = dFdy( uVv.st );
+
+				vec3 S = normalize(  q0 * st1.t - q1 * st0.t );
+				vec3 T = normalize( -q0 * st1.s + q1 * st0.s );
+				vec3 N =  surf_norm ;
+				
+				vec3 mapN = normalize(texture2D( normalMap, uVv *textureRepeat ).xyz * 2.0 - 1.0);
+				mat3 tsn = mat3( S, T, N );
+				return normalize( tsn * mapN );
+			}
+			
+			vec3 inverseTransformDirection( in vec3 dir, in mat4 matrix ) {
+				return normalize( ( vec4( dir, 0.0 ) * matrix ).xyz );
+			}
+			
+			vec3 findOutRadiance(vec3 plp) {
+				vec4 lPosition = viewMatrix * vec4( plp, 1.0 );
+				vec3 l = normalize(lPosition.xyz - vPosition.xyz);
+				vec3 n = perturbNormal2Arb( vPosition, normalize( vNormal ));
+				vec3 v = normalize( -vPosition);
+				vec3 h = normalize( v + l);
+				vec3 worldN = inverseTransformDirection( n, viewMatrix );
+				vec3 worldV = cameraPosition - wPosition ;
+				vec3 r = normalize( reflect(-worldV,worldN));
+				// small quantity to prevent divisions by 0
+				float nDotl = max(dot( n, l ),0.000001);
+				float lDoth = max(dot( l, h ),0.000001);
+				float nDoth = max(dot( n, h ),0.000001);
+				float vDoth = max(dot( v, h ),0.000001);
+				float nDotv = max(dot( n, v ),0.000001);
+
+				cdiff = texture2D( diffuseMap, uVv  *textureRepeat).rgb;
+				// texture in sRGB, linearize
+				cdiff = pow( cdiff, vec3(2.2));
+				cspec = texture2D( specularMap, uVv  *textureRepeat).rgb;
+				// texture in sRGB, linearize
+				cspec = pow( cspec, vec3(2.2));
+				roughness = texture2D( roughnessMap, uVv *textureRepeat).r; // no need to linearize roughness map
+
+				vec3 fresnel = FSchlick(lDoth);
+				// negate x to account for how cubemap is displayed on background
+				vec3 envLight = textureCube( envMap, vec3(-r.x, r.yz)).rgb;
+				// texture in sRGB, linearize
+				envLight = pow( envLight, vec3(2.2));
+				vec3 BRDF = (vec3(1.0)-fresnel*envLight)*cdiff/PI + fresnel*envLight*GSmith(nDotv,nDotl)*DGGX(nDoth,roughness*roughness)/(4.0*nDotl*nDotv);
+				vec3 outRad = PI* clight * nDotl * BRDF;
+				return outRad;	
+				
+				
+			}
+
+			
+			void main() {
+				vec3 outRadiance1 = findOutRadiance(pointLightPosition1);
+				vec3 outRadiance2 = findOutRadiance(pointLightPosition2);
+				vec3 outRadiance3 = findOutRadiance(pointLightPosition3);
+				vec3 outRadiance = outRadiance1 + outRadiance2 + outRadiance3 + ambientLight*cdiff*texture2D( aoMap, uVv*textureRepeat ).xyz;;
+				// gamma encode the final value
+				gl_FragColor = vec4(pow( outRadiance, vec3(1.0/2.2)), 1.0);
+			}
+		</script>
+
+		<!-- three.js code -->
+
+		<script>
+
+			
+			var renderer = new THREE.WebGLRenderer( { antialias: true } );
+			var camera = new THREE.PerspectiveCamera( 10, window.innerWidth / window.innerHeight, 1, 1000 );
+			var controls = new THREE.OrbitControls( camera, renderer.domElement );
+			var scene = new THREE.Scene();
+			
+		
+
+			
+			
+			
+			var loader = new THREE.CubeTextureLoader();
+				loader.setPath('textures/cubemap/');
+
+				var textureCube = loader.load( [
+					'positivex.jpg', 'negativex.jpg',
+					'positivey.jpg', 'negativey.jpg',
+					'positivez.jpg', 'negativez.jpg'
+				] );
+			//scene.background=textureCube;
+			var texture = {//default
+				Tessuto:"Jeans",
+				Base: "Platinum",
+				
+			}//default
+			var prezzoBase=80;
+			var prezzoCuscino=20;
+			var normalMap = [	loadTexture( "textures/cuscino/" + texture.Tessuto + "_Normal.png" ),
+								loadTexture( "textures/base/" + texture.Base + "_Normal.png" )];
+							
+			var diffuseMap = [	loadTexture( "textures/cuscino/" + texture.Tessuto + "_Diffuse.png" ),
+								loadTexture( "textures/base/" + texture.Base + "_Diffuse.png" )];
+							
+			var specularMap = [	loadTexture( "textures/cuscino/" + texture.Tessuto + "_Specular.png" ),
+								loadTexture( "textures/base/" + texture.Base + "_Specular.png" )];
+							
+			var roughnessMap = [loadTexture( "textures/cuscino/" + texture.Tessuto + "_Roughness.png" ),
+								loadTexture( "textures/base/" + texture.Base + "_Roughness.png" )];
+							
+			var aoMap = 	[	loadTexture( "textures/cuscino/" + texture.Tessuto + "_AmbientOcclusion.png" ),
+								loadTexture( "textures/base/" + texture.Base + "_AmbientOcclusion.png" )];
+
+			
+							
+							
+			var TessutoUniforms = {
+						specularMap: { type: "t", value: specularMap[0]},
+						diffuseMap:	{ type: "t", value: diffuseMap[0]},
+						roughnessMap:	{ type: "t", value: roughnessMap[0]},
+						normalMap:	{ type: "t", value: normalMap[0]},
+			
+						envMap:	{ type: "t", value: textureCube},
+						aoMap:	{ type: "t", value: aoMap[0]},
+						ambientLight:	{ type: "v3", value: new THREE.Vector3(0.5, 0.5, 0.5) },
+						pointLightPosition1:	{ type: "v3", value: new THREE.Vector3() },
+						pointLightPosition2:	{ type: "v3", value: new THREE.Vector3() },
+						pointLightPosition3:	{ type: "v3", value: new THREE.Vector3() },
+						clight:	{ type: "v3", value: new THREE.Vector3(1.0, 1.0, 1.0) },
+						
+						textureRepeat: { type: "v2", value: new THREE.Vector2(1,1)}
+						
+					};
+				
+			var sediaUniforms = {
+						specularMap: { type: "t", value: specularMap[1]},
+						diffuseMap:	{ type: "t", value: diffuseMap[1]},
+						roughnessMap:	{ type: "t", value: roughnessMap[1]},
+						aoMap:	{ type: "t", value: aoMap[1]},
+						normalMap:	{ type: "t", value: normalMap[1]},
+					
+						envMap:	{ type: "t", value: textureCube},
+						ambientLight:	{ type: "v3", value: new THREE.Vector3(0.2, 0.2, 0.2) },
+						pointLightPosition1:	{ type: "v3", value: new THREE.Vector3() },
+						pointLightPosition2:	{ type: "v3", value: new THREE.Vector3() },
+						pointLightPosition3:	{ type: "v3", value: new THREE.Vector3() },
+						clight:	{ type: "v3", value: new THREE.Vector3(1.0, 1.0, 1.0) },
+						
+						textureRepeat:		{ type: "v2", value: new THREE.Vector2(2, 2) },
+						
+					};
+					
+					var floor="marble"
+					var floorUniforms = {
+						specularMap: { type: "t", value: loadTexture( "textures/floor/"+floor+"_Specular.png" ) },
+						diffuseMap:	{ type: "t", value: loadTexture( "textures/floor/"+floor+"_Diffuse.png" ) },
+						roughnessMap:	{ type: "t", value: loadTexture( "textures/floor/"+floor+"_Roughness.png" ) },
+						aoMap:	{ type: "t", value: loadTexture( "textures/floor/"+floor+"_AmbientOcclusion.png" ) },
+						normalMap:	{ type: "t", value: loadTexture( "textures/floor/"+floor+"_Normal.png" ) },
+				
+						envMap:	{ type: "t", value: textureCube},
+						textureRepeat:		{ type: "v2", value: new THREE.Vector2(3, 3) },
+						
+						ambientLight:	{ type: "v3", value: new THREE.Vector3(0.2, 0.2, 0.2) },
+						pointLightPosition1:	{ type: "v3", value: new THREE.Vector3() },
+						pointLightPosition2:	{ type: "v3", value: new THREE.Vector3() },
+						pointLightPosition3:	{ type: "v3", value: new THREE.Vector3() },
+						clight:	{ type: "v3", value: new THREE.Vector3(1.0, 1.0, 1.0) },
+						 
+						
+						
+					};
+			
+			
+			
+			var uniforms = [TessutoUniforms, sediaUniforms,floorUniforms];
+			
+			vs = document.getElementById("vertex").textContent;
+			fs = document.getElementById("fragment").textContent;
+
+			var ourMaterial = [	new THREE.ShaderMaterial({ uniforms: uniforms[0], vertexShader: vs, fragmentShader: fs }), 
+								new THREE.ShaderMaterial({ uniforms: uniforms[1], vertexShader: vs, fragmentShader: fs }),
+								new THREE.ShaderMaterial({ uniforms: uniforms[2], vertexShader: vs, fragmentShader: fs })];
+								
+			var loader = new THREE.OBJLoader();
+				loader.load( "models/RoundChair.obj", function ( group ) {
+				for(i=0; i<group.children.length; i++){
+					geometry = group.children[i].geometry;
+					mesh = new THREE.Mesh( geometry, ourMaterial[i] );
+					mesh.scale.multiplyScalar( 0.005 );
+					mesh.position.set(0, 0, 0);
+					scene.add(mesh);
+				}
+				console.log(group.children.length);
+				
+			} );
+
+
+			var light1 = new THREE.PointLight( 0xff0000, 1, 100 );
+			light1.position.set( 0, 90,10 );
+			
+			var light2 = new THREE.PointLight( 0xff0000, 1, 100 );
+			light2.position.set( 80, 0, 0 );
+			
+			var light3 = new THREE.PointLight( 0xff0000, 1, 100 );
+			light3.position.set( 80, 50, 0 );
+			
+			TessutoUniforms.pointLightPosition1.value = new THREE.Vector3(light1.position.x, light1.position.y, light1.position.z);
+			TessutoUniforms.pointLightPosition2.value = new THREE.Vector3(light2.position.x,light2.position.y,light2.position.z);
+			TessutoUniforms.pointLightPosition3.value = new THREE.Vector3(light3.position.x,light3.position.y,light3.position.z);
+			sediaUniforms.pointLightPosition1.value = new THREE.Vector3(light1.position.x,light1.position.y,light1.position.z);
+			sediaUniforms.pointLightPosition2.value = new THREE.Vector3(light2.position.x,light2.position.y,light2.position.z);	
+			sediaUniforms.pointLightPosition3.value = new THREE.Vector3(light3.position.x,light3.position.y,light3.position.z);
+			
+			//floorUniforms.pointLightPosition1.value = new THREE.Vector3(light1.position.x,light1.position.y,light1.position.z);
+			//floorUniforms.pointLightPosition2.value = new THREE.Vector3(light1.position.x,light1.position.y,light1.position.z);
+			//floorUniforms.pointLightPosition3.value = new THREE.Vector3(light1.position.x,light1.position.y,light1.position.z);
+
+			var gui;
+			var stats = new Stats();
+
+			function loadTexture(file) {
+					var texture = new THREE.TextureLoader().load( file , function ( texture ) {
+
+						texture.minFilter = THREE.LinearMipMapLinearFilter;
+						texture.anisotropy = renderer.getMaxAnisotropy();
+						texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+						texture.offset.set( 0, 0 );
+						texture.needsUpdate = true;
+						render();
+					} )
+					return texture;
+			}
+			
+			
+			function change(){
+				
+				
+				
+				
+			
+				normalMap = [loadTexture( "textures/cuscino/" + texture.Tessuto + "_Normal.png" ),loadTexture( "textures/base/" + texture.Base + "_Normal.png" ),];
+														
+				diffuseMap = [	loadTexture( "textures/cuscino/" + texture.Tessuto + "_Diffuse.png" ),loadTexture( "textures/base/" + texture.Base + "_Diffuse.png" ),];
+						
+				specularMap = [	loadTexture( "textures/cuscino/" + texture.Tessuto + "_Specular.png" ),loadTexture( "textures/base/" + texture.Base + "_Specular.png" )];
+								
+				roughnessMap= [loadTexture( "textures/cuscino/" + texture.Tessuto + "_Roughness.png" ),loadTexture( "textures/base/" + texture.Base + "_Roughness.png" )];
+								
+				aoMap = [loadTexture( "textures/cuscino/" + texture.Tessuto + "_AmbientOcclusion.png" ),loadTexture( "textures/base/" + texture.Base + "_AmbientOcclusion.png" )];
+								
+				
+				calcolaPrezzo(prezzoBase,prezzoCuscino);
+				console.log("change");}
+			
+			
+			
+			function calcolaPrezzo(x,y){
+					document.getElementById("PrezzoToT").innerHTML = x+y+" €";
+				}
+			
+			function init() {
+				calcolaPrezzo(prezzoBase,prezzoCuscino);
+				renderer.setClearColor( 0xf0f0f0 );
+				
+				camera.position.set( 0, 1.5, 30 );
+				
+				
+				
+				
+				scene.add( camera );
+			
+				scene.add(light1);
+				scene.add(light2);
+				scene.add(light3);
+				
+				
+			var materialFloor = new THREE.ShaderMaterial({ uniforms: floorUniforms, vertexShader: vs, fragmentShader: fs });
+			var geometryP = new THREE.PlaneGeometry(15,15);
+			var floor = new THREE.Mesh( geometryP,ourMaterial[2]  );
+			floor.rotation.x = -90 * Math.PI/180;
+			floor.position.set(0, 0,0); 
+			
+				
+				//scene.add(floor);
+				
+				document.body.appendChild( renderer.domElement );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				controls.addEventListener( 'change', render );
+				controls.minDistance = 10;
+				controls.maxDistance = 30;
+				controls.maxPolarAngle = 1.48353;
+				controls.enablePan = false;
+				controls.target = new THREE.Vector3(0, 1.5, 0);
+				controls.update();
+
+				window.addEventListener( 'resize', onResize, false );
+
+				stats.domElement.style.bottom = "0px";
+				stats.domElement.style.position = "fixed";
+
+				//document.body.appendChild( stats.domElement );
+
+				ourMaterial[0].needsUpdate = true;
+				ourMaterial[1].needsUpdate = true;
+				//ourMaterial[2].needsUpdate=true;
+				
+				
+				
+			}
+
+			function onResize() {
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				camera.aspect = ( window.innerWidth / window.innerHeight );
+				camera.updateProjectionMatrix();
+
+			}
+
+			function update() {
+				requestAnimationFrame( update );
+				stats.update();
+				render();
+			}
+
+			function render() {
+			
+				updateUniforms();
+				renderer.render( scene, camera );
+			}
+
+	
+			
+			function updateUniforms() {
+					
+			
+					TessutoUniforms.diffuseMap.value = diffuseMap[0];
+					TessutoUniforms.specularMap.value = specularMap[0];
+					TessutoUniforms.roughnessMap.value = roughnessMap[0];
+					TessutoUniforms.normalMap.value = normalMap[0];
+					TessutoUniforms.aoMap.value = aoMap[0];
+					
+					sediaUniforms.diffuseMap.value = diffuseMap[1];
+					sediaUniforms.specularMap.value = specularMap[1];
+					sediaUniforms.roughnessMap.value = roughnessMap[1];
+					sediaUniforms.normalMap.value = normalMap[1];
+					sediaUniforms.aoMap.value = aoMap[1];
+		
+		
+			}
+			
+			function EventChangeMaterial(mat_id) {
+				switch (mat_id) {
+					case 1:
+					
+						texture.Base= "Platinum";
+						prezzoBase=80;
+						change();
+						break;
+					
+					case 2:
+						texture.Base= "aluminium";
+						prezzoBase=65;
+						change();
+						break;
+						
+					case 3:
+							
+						texture.Base="Blue Lucid Plastic";
+						prezzoBase=50;
+						change();
+						break;
+					
+					case 4:
+					
+						texture.Tessuto="Jeans";
+						prezzoCuscino=20;
+						change();
+						break;
+					case 5:
+					
+						texture.Tessuto="pelle";
+						prezzoCuscino=45;
+						change();
+						break;
+
+					case 6:
+					
+						texture.Tessuto="Camouflage";
+						prezzoCuscino=35;
+						change();
+						break;						
+					case 7:
+						console.log("TODO");
+						break;
+				}
+			
+			
+
+				render();
+			}
+			
+			
+			
+			init();
+			update();
+			render();
+
+	
+			
+
+		</script>
+	</body>
+</html>
